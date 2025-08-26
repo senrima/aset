@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Formulir Kontak</title>
+    <script src="https://www.google.com/recaptcha/api.js?render=6Lffu7IrAAAAAN2uSiFZrk8ft2mLqpq9oH2-1GFD"></script>
+</head>
+<body>
+
+    <h2>Kirim Pesan</h2>
+    <form id="contact-form">
+        <label for="name">Nama:</label><br>
+        <input type="text" id="name" name="name" required><br><br>
+        
+        <label for="message">Pesan:</label><br>
+        <textarea id="message" name="message" required></textarea><br><br>
+        
+        <button type="submit">Kirim</button>
+    </form>
+    
+    <div id="status"></div>
+
+    <script>
+        // 2. Ambil elemen form
+        const form = document.getElementById('contact-form');
+        const statusDiv = document.getElementById('status');
+        
+        // 3. Tambahkan event listener saat form disubmit
+        form.addEventListener('submit', function(event) {
+            // Hentikan proses default pengiriman form
+            event.preventDefault();
+            statusDiv.textContent = 'Memverifikasi...';
+
+            // 4. Minta token reCAPTCHA ke Google
+            grecaptcha.ready(function() {
+                grecaptcha.execute('GANTI_DENGAN_SITE_KEY_ANDA', {action: 'submit'}).then(function(token) {
+                    
+                    // 5. Setelah token didapat, kumpulkan data form
+                    const formData = {
+                        name: document.getElementById('name').value,
+                        message: document.getElementById('message').value,
+                        recaptchaToken: token // <--- Ini tokennya!
+                    };
+
+                    // 6. Kirim data dan token ke API Worker Anda
+                    fetch('https://stools-payment.senrima-ms.workers.dev', { // GANTI DENGAN URL WORKER ANDA
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Sukses:', data);
+                        statusDiv.textContent = 'Pesan berhasil terkirim!';
+                        form.reset();
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                        statusDiv.textContent = 'Terjadi error. Silakan coba lagi.';
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
